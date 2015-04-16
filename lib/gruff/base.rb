@@ -201,6 +201,10 @@ module Gruff
     # With Side Bars use the data label for the marker value to the left of the bar
     # Default is false
     attr_accessor :use_data_label
+    
+    # Array of arrays describing dash line styles in RMagick format; one array per series
+    attr_accessor :dash_arrays
+    
     # If one numerical argument is given, the graph is drawn at 4/3 ratio
     # according to the given width (800 results in 800x600, 400 gives 400x300,
     # etc.).
@@ -726,6 +730,9 @@ module Gruff
       @legend_labels = @data.collect { |item| item[DATA_LABEL_INDEX] }
 
       legend_square_width = @legend_box_size # small square with color of this item
+      
+      # Line symbols need some more room to distinguish dash styles
+      legend_square_width += 12.0 if legend_symbol_shape == :line
 
       # May fix legend drawing problem at small sizes
       @d.font = @font if @font
@@ -761,13 +768,32 @@ module Gruff
                                 current_x_offset + (legend_square_width * 1.7), current_y_offset,
                                 legend_label.to_s, @scale)
 
-        # Now draw box with color of this dataset
-        @d = @d.stroke('transparent')
-        @d = @d.fill @data[index][DATA_COLOR_INDEX]
-        @d = @d.rectangle(current_x_offset,
-                          current_y_offset - legend_square_width / 2.0,
-                          current_x_offset + legend_square_width,
-                          current_y_offset + legend_square_width / 2.0)
+        if legend_symbol_shape == :rectangle
+          # Now draw box with color of this dataset
+          @d = @d.stroke('transparent')
+          @d = @d.fill @data[index][DATA_COLOR_INDEX]
+          @d = @d.rectangle(current_x_offset,
+                            current_y_offset - legend_square_width / 2.0,
+                            current_x_offset + legend_square_width,
+                            current_y_offset + legend_square_width / 2.0)
+        elsif legend_symbol_shape == :line
+          # Draw legend symbols as lines
+          @d = @d.stroke_opacity 1.0
+          @d = @d.stroke_width 5.0
+          @d = @d.stroke @data[index][DATA_COLOR_INDEX]
+          dash_params = @dash_arrays[index]
+          @d.stroke_dasharray( dash_params[0], dash_params[1] ) if dash_params
+          @d = @d.line(
+            current_x_offset,
+            current_y_offset,
+            current_x_offset + legend_square_width,
+            current_y_offset
+          )
+          @d.stroke_dasharray()
+          @d.stroke('transparent')
+        else
+          raise 'Invalid legend symbol shape.'
+        end
 
         @d.pointsize = @legend_font_size
         metrics = @d.get_type_metrics(@base_image, legend_label.to_s)
@@ -1126,6 +1152,14 @@ module Gruff
     # Used for degree => radian conversions
     def deg2rad(angle)
       angle * (Math::PI/180.0)
+    end
+    
+    def legend_symbol_shape
+      if @dash_arrays.nil?
+        return :rectangle
+      else
+        return :line
+      end
     end
 
   end # Gruff::Base

@@ -208,7 +208,7 @@ class Gruff::Line < Gruff::Base
       end
     end
 
-    @norm_data.each do |data_row|
+    @norm_data.each_with_index do |data_row, series_index|      
       prev_x = prev_y = nil
 
       @one_point = contains_one_point_only?(data_row)
@@ -243,7 +243,17 @@ class Gruff::Line < Gruff::Base
             clip_value_if_greater_than(@columns / (@norm_data.first[DATA_VALUES_INDEX].size * 2.5), 5.0)
 
         if !@hide_lines && !prev_x.nil? && !prev_y.nil?
+          # Make it a dashed line if user specified dash arrays
+          is_dashed_line = @dash_arrays && @dash_arrays[series_index]
+          if is_dashed_line
+            dash_params = @dash_arrays[series_index]
+            @d.stroke_dasharray( dash_params[0], dash_params[1] )
+          end
+                    
           @d = @d.line(prev_x, prev_y, new_x, new_y)
+
+          # Cleanup after ourselves (remove dash style)
+          @d.stroke_dasharray() if is_dashed_line
         elsif @one_point
           # Show a circle if there's just one_point
           @d = @d.circle(new_x, new_y, new_x - circle_radius, new_y)
