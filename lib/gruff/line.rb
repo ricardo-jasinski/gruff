@@ -260,6 +260,17 @@ class Gruff::Line < Gruff::Base
         end
         @d = @d.circle(new_x, new_y, new_x - circle_radius, new_y) unless @hide_dots
 
+label_box_width = 50
+label_box_height = 25
+@d = @d.annotate(
+  @base_image, 
+  label_box_width, 
+  label_box_height, 
+  new_x - label_box_width / 2, 
+  new_y - circle_radius * 5.5,
+  (data_point * @maximum_value / 1000).round.to_s + 'k'
+)
+
         prev_x, prev_y = new_x, new_y
       end
     end

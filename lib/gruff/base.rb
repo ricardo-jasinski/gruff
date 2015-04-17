@@ -732,7 +732,7 @@ module Gruff
       legend_square_width = @legend_box_size # small square with color of this item
       
       # Line symbols need some more room to distinguish dash styles
-      legend_square_width += 12.0 if legend_symbol_shape == :line
+      legend_square_width += 10.0 if legend_symbol_shape == :line
 
       # May fix legend drawing problem at small sizes
       @d.font = @font if @font
