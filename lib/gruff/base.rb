@@ -205,6 +205,9 @@ module Gruff
     # Array of arrays describing dash line styles in RMagick format; one array per series
     attr_accessor :dash_arrays
     
+    # Set to true show 123456 as 123k
+    attr_accessor :show_labels_in_thousands
+    
     # If one numerical argument is given, the graph is drawn at 4/3 ratio
     # according to the given width (800 results in 800x600, 400 gives 400x300,
     # etc.).
@@ -662,6 +665,11 @@ module Gruff
 
         marker_label = BigDecimal(index.to_s) * BigDecimal(@increment.to_s) +
             BigDecimal(@minimum_value.to_s)
+            
+        label_value = label(marker_label, @increment)
+        if @show_labels_in_thousands
+          label_value = (marker_label / 1000).round.to_s + 'k'
+        end
 
         unless @hide_line_numbers
           @d.fill = @font_color
@@ -674,7 +682,7 @@ module Gruff
           @d = @d.annotate_scaled(@base_image,
                                   @graph_left - LABEL_MARGIN, 1.0,
                                   0.0, y,
-                                  label(marker_label, @increment), @scale)
+                                  label_value, @scale)
         end
       end
 

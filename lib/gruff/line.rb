@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/base'
+require 'awesome_print'
 
 ##
 # Here's how to make a Line graph:
@@ -31,7 +32,10 @@ class Gruff::Line < Gruff::Base
   #accessors for support of xy data
   attr_accessor :minimum_x_value
   attr_accessor :maximum_x_value
-
+  
+  # Define whether and where to print a label for each data point (nil, :above, :below)
+  attr_accessor :series_label_positions
+  
   # Get the value if somebody has defined it.
   def baseline_value
     if (@reference_lines.key?(:baseline))
@@ -260,17 +264,38 @@ class Gruff::Line < Gruff::Base
         end
         @d = @d.circle(new_x, new_y, new_x - circle_radius, new_y) unless @hide_dots
 
-label_box_width = 50
-label_box_height = 25
-@d = @d.annotate(
-  @base_image, 
-  label_box_width, 
-  label_box_height, 
-  new_x - label_box_width / 2, 
-  new_y - circle_radius * 5.5,
-  (data_point * @maximum_value / 1000).round.to_s + 'k'
-)
+        if @series_label_positions && @series_label_positions[series_index] && (data_point > 0)
+          label_box_width = 50
+          label_box_height = 25
+          position = @series_label_positions[series_index]
+          offset = (position == :above ? -1 : +1)
+          
+          
+          y_values = @norm_data.collect { |row| row[1][index] }
+          y_value_here = data_point
+          other_y_values = y_values - [y_value_here]
+          
+          closest_y_value = other_y_values.min_by {|y| (y-y_value_here).abs }
+          if closest_y_value
+            offset = (closest_y_value > y_value_here) ? +1 : -1
+          end
 
+          label_y = -8 + new_y + circle_radius * 5.0 * offset
+          
+          label_text = @show_labels_in_thousands ? 
+            (data_point * @maximum_value / 1000).round.to_s + 'k' :
+            (data_point * @maximum_value).round.to_s
+          
+          @d = @d.annotate(
+            @base_image, 
+            label_box_width, 
+            label_box_height, 
+            new_x - label_box_width / 2, 
+            label_y,
+            label_text
+          )
+        end
+        
         prev_x, prev_y = new_x, new_y
       end
     end
