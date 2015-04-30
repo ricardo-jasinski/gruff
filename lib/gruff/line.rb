@@ -264,7 +264,13 @@ class Gruff::Line < Gruff::Base
         end
         @d = @d.circle(new_x, new_y, new_x - circle_radius, new_y) unless @hide_dots
 
-        if @series_label_positions && @series_label_positions[series_index] && (data_point > 0)
+        # Decide whether to print a data label near the marker
+        num_data_points = data_row[DATA_VALUES_INDEX].count
+        omit_some_data_labels = (num_data_points > 16) 
+        omit_this_label = omit_some_data_labels && 
+          ((index.odd? && num_data_points.odd?) || (index.even? && num_data_points.even?))
+        
+        if @series_label_positions && @series_label_positions[series_index] && (data_point > 0) && !omit_this_label
           label_box_width = 50
           label_box_height = 25
           position = @series_label_positions[series_index]
@@ -273,7 +279,7 @@ class Gruff::Line < Gruff::Base
           
           y_values = @norm_data.collect { |row| row[1][index] }
           y_value_here = data_point
-          other_y_values = y_values - [y_value_here]
+          other_y_values = y_values - [y_value_here] + [-0.1]
           
           closest_y_value = other_y_values.min_by {|y| (y-y_value_here).abs }
           if closest_y_value
