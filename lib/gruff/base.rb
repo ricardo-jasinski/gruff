@@ -1,5 +1,5 @@
 require 'rubygems'
-require 'RMagick'
+require 'rmagick'
 require 'bigdecimal'
 
 require File.dirname(__FILE__) + '/deprecated'
@@ -240,8 +240,11 @@ module Gruff
     # developers to change this values in their program.
     def initialize_ivars
       # Internal for calculations
-      @raw_columns = 800.0
-      @raw_rows = 800.0 * (@rows/@columns)
+      # RPJ: The changes below fix the label positions when the dimensions 
+      #      are different than 800x600
+      @raw_columns = @columns #=> was: 800.0
+      @raw_rows = @columns * (@rows/@columns) #=> was: 800.0 * (@rows/@columns)
+      
       @column_count = 0
       @marker_count = nil
       @maximum_value = @minimum_value = nil

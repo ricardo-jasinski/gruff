@@ -286,8 +286,8 @@ class Gruff::Line < Gruff::Base
             offset = (closest_y_value > y_value_here) ? +1 : -1
           end
 
-          label_y = -8 + new_y + circle_radius * 5.0 * offset
-          
+          label_x = (new_x - label_box_width / 2) * @scale
+          label_y = (-12 + new_y + circle_radius * 5.0 * offset)
           label_text = @show_labels_in_thousands ? 
             (data_point * @maximum_value / 1000).round.to_s + 'k' :
             (data_point * @maximum_value).round.to_s
@@ -296,7 +296,7 @@ class Gruff::Line < Gruff::Base
             @base_image, 
             label_box_width, 
             label_box_height, 
-            new_x - label_box_width / 2, 
+            label_x, 
             label_y,
             label_text
           )
