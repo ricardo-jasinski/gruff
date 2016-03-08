@@ -856,6 +856,9 @@ module Gruff
       if !@labels[index].nil? && @labels_seen[index].nil?
         y_offset = @graph_bottom + LABEL_MARGIN
 
+        # RPJ: add some room for value labels        
+        y_offset += 10
+
         # TESTME
         # FIXME: Consider chart types other than bar
         # TODO: See if index.odd? is the best stragegy
